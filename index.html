@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Idul Fitri 1447H | Muhammad Hafiz Zikri</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;700&family=Great+Vibes&display=swap');
+
+        :root {
+            --gold: #ffcc33;
+            --deep-green: #0a2e29;
+            --soft-white: #fffcf0;
+            --red-lampion: #d32f2f;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background: #050d0c;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- KANVAS ANIMASI --- */
+        #bgCanvas, #fwCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #bgCanvas { z-index: 1; }
+        #fwCanvas { z-index: 150; pointer-events: none; }
+
+        /* --- PERBAIKAN GAMBAR MASJID --- */
+        .mosque-bg-full {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Biar gambar pas menutupi layar tanpa gepeng */
+            z-index: 2;
+            filter: brightness(0.5) contrast(1.1); /* Efek Shadow/Gelap agar kartu menonjol */
+        }
+
+        /* Overlay tambahan agar bagian bawah lebih gelap (estetik) */
+        .overlay-shadow {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8) 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* --- LAMPION --- */
+        .lampion {
+            position: absolute; top: -10px; width: 40px; height: 50px;
+            background: var(--red-lampion); border-radius: 10px;
+            box-shadow: 0 0 20px rgba(211, 47, 47, 0.5);
+            z-index: 5; transform-origin: top center;
+            animation: swing 3s infinite ease-in-out;
+        }
+        .lampion::after { content: "🏮"; font-size: 30px; display: flex; justify-content: center; }
+        .l1 { left: 10%; animation-delay: 0s; }
+        .l2 { right: 10%; animation-delay: 0.5s; }
+        @keyframes swing { 0%, 100% { transform: rotate(5deg); } 50% { transform: rotate(-5deg); } }
+
+        /* --- CONTAINER & CARD --- */
+        .container { position: relative; z-index: 100; width: 90%; max-width: 380px; }
+        
+        .envelope { 
+            width: 100%; height: 200px; background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(15px); border: 2px solid var(--gold); 
+            border-radius: 24px; cursor: pointer; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .card {
+            position: absolute; top: 50%; left: 50%; width: 100%; 
+            max-height: 85vh; background: var(--soft-white); border-radius: 20px; color: #1a1a1a; 
+            padding: 25px; box-sizing: border-box;
+            display: flex; flex-direction: column; 
+            opacity: 0; pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.8);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 4px solid var(--gold);
+            overflow-y: auto;
+            z-index: 200;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        .card.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: all; }
+
+        .card h2 { font-family: 'Great Vibes', cursive; font-size: 1.8rem; color: var(--deep-green); margin: 0; text-align: center; }
+        
+        .typewriter-box { 
+            font-size: 0.9rem; color: #333; line-height: 1.6; 
+            margin: 15px 0; text-align: center; font-weight: 500;
+        }
+
+        .qris-section {
+            margin: 10px auto; padding: 10px;
+            border: 2px dashed var(--gold); border-radius: 12px;
+            background: white; text-align: center; width: 90%;
+        }
+        .qris-image { width: 130px; height: 130px; margin: 8px auto; display: block; border-radius: 5px; }
+
+        .footer-info { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 0.8rem; text-align: center; }
+
+        .btn-control { background: var(--deep-green); border: 1px solid var(--gold); color: var(--gold); padding: 8px 16px; border-radius: 50px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        #musicToggle { position: fixed; bottom: 15px; right: 15px; z-index: 1001; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+    
+    <img src="masjid_bg.png" class="mosque-bg-full" alt="Background Masjid">
+    <div class="overlay-shadow"></div>
+    
+    <canvas id="fwCanvas"></canvas>
+
+    <div class="lampion l1"></div>
+    <div class="lampion l2"></div>
+    
+    <button class="btn-control" id="musicToggle" onclick="toggleMusic()">🔈 MUSIK</button>
+
+    <div class="container">
+        <div class="envelope" id="envelope" onclick="openCard()">
+            <span style="font-size: 3rem; filter: drop-shadow(0 0 10px var(--gold));">🌙</span>
+            <p style="color: white; font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px;">KLIK UNTUK MEMBUKA</p>
+        </div>
+
+        <div class="card" id="card">
+            <h2>Selamat Idul Fitri 1447 H</h2>
+            <p style="font-style: italic; color: #2e7d32; font-size: 0.75rem; text-align: center;">"Taqabbalallahu minna wa minkum"</p>
+
+            <div class="typewriter-box">
+                <span id="typing-text"></span>
+            </div>
+
+            <div class="qris-section">
+                <div style="font-size: 0.65rem; font-weight: bold; color: var(--deep-green);">PENCAIRAN THR ✨</div>
+                <img src="WhatsApp Image 2026-03-11 at 17.14.14.jpeg" alt="QRIS" class="qris-image">
+                <div style="font-size: 0.6rem; color: #888;">Scan untuk berbagi kebahagiaan</div>
+            </div>
+
+            <div class="footer-info">
+                Dari: <strong>MUHAMMAD HAFIZ ZIKRI</strong><br>
+                Untuk: <strong>KAMU</strong>
+                <br>
+                <button class="btn-control" onclick="window.location.reload()" style="background:#ddd; color:#333; border:none; margin-top: 15px;">TUTUP</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="rayaSong" loop preload="auto">
+        <source src="Suasana Hari Raya (Cover by Daiyan Trisha).mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const envelope = document.getElementById('envelope');
+        const card = document.getElementById('card');
+        const song = document.getElementById('rayaSong');
+        const typingText = document.getElementById('typing-text');
+        const fwCanvas = document.getElementById('fwCanvas');
+        const ctx = fwCanvas.getContext('2d');
+
+        const messageToType = "Ramadan telah berlalu, namun cahayanya semoga tetap di hati. ✨ \n\nSeiring gema takbir yang berkumandang, izinkan jemari menyusun maaf atas lisan yang tak terjaga dan janji yang terabaikan. Selamat Hari Raya Idul Fitri 1447 H. 🕌 \n\nSemoga hari ini penuh dengan tawa, ketupat yang lezat, dan tentu saja... THR yang lancar! 🙏😊";
+
+        function openCard() {
+            card.classList.add('active');
+            envelope.style.display = 'none';
+            song.play().catch(e => console.log("Musik butuh interaksi user"));
+            startTyping();
+            setInterval(createFirework, 800);
+        }
+
+        let charIndex = 0;
+        function startTyping() {
+            if (charIndex < messageToType.length) {
+                let char = messageToType.charAt(charIndex);
+                typingText.innerHTML += char === "\n" ? "<br>" : char;
+                charIndex++;
+                setTimeout(startTyping, 35);
+            }
+        }
+
+        function toggleMusic() {
+            if (song.paused) { song.play(); document.getElementById('musicToggle').innerText = "🔊 MUSIK"; }
+            else { song.pause(); document.getElementById('musicToggle').innerText = "🔈 MUSIK"; }
+        }
+
+        // --- FIREWORKS ---
+        fwCanvas.width = window.innerWidth;
+        fwCanvas.height = window.innerHeight;
+        let particles = [];
+        function createFirework() {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * (fwCanvas.height/2);
+            const color = `hsl(${Math.random()*360}, 100%, 60%)`;
+            for(let j=0; j<40; j++) {
+                particles.push({
+                    x, y, 
+                    vx: Math.cos(j) * (Math.random()*6), 
+                    vy: Math.sin(j) * (Math.random()*6),
+                    color, alpha: 1
+                });
+            }
+        }
+        function animateFW() {
+            ctx.clearRect(0,0,fwCanvas.width, fwCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.015;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
+                if(p.alpha <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animateFW);
+        }
+        animateFW();
+
+        // Stars
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+        let stars = [];
+        for(let i=0; i<100; i++) stars.push({x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, s: Math.random()*2});
+        function drawStars() {
+            bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = "rgba(255,255,255,0.4)";
+            stars.forEach(s => bgCtx.fillRect(s.x, s.y, s.s, s.s));
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+    </script>
+</body>
+</html>
